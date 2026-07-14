@@ -1,17 +1,4 @@
-"""
-Text cleaning for sentiment classification.
 
-Deliberately does NOT use NLTK's stopword corpus -- that requires a
-runtime download (nltk.download(...)), which is exactly the kind of
-network dependency that makes CI flaky (same reasoning as keeping
-RoBERTa out of CI). A small hardcoded stopword list is enough here and
-keeps the whole pipeline offline-safe.
-
-The one deliberate design choice worth calling out: negation words
-(not, no, never, ...) are kept even though they're normally "stopwords".
-Stripping them turns "not good" into "good" and flips the meaning --
-a classic beginner mistake in sentiment pipelines.
-"""
 from __future__ import annotations
 
 import html

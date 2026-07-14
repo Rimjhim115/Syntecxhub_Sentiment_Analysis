@@ -1,18 +1,4 @@
-"""
-Loads review data and converts 1-5 star ratings into 3 sentiment classes.
 
-Handles two common Amazon review formats:
-
-- CSV with 'Text'/'Score' columns (e.g. the Amazon Fine Food Reviews dataset)
-- JSON-lines (.json, one JSON object per line) with 'reviewText'/'overall'
-  columns (the standard format for Julian McAuley's Amazon review
-  datasets, which is what most "Cell Phones and Accessories" / similar
-  category dumps on Kaggle use)
-
-Falls back to the small bundled CSV sample if no path is given -- that
-sample is what tests and CI run against, so a large downloaded dataset
-is never required to get the project working.
-"""
 from __future__ import annotations
 
 from pathlib import Path
