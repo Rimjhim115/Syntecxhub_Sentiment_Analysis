@@ -15,6 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
     train_p = sub.add_parser("train", help="Train and compare all classical models, save the best one")
     train_p.add_argument("--data", default=None, help="Path to a reviews file (.csv or .json-lines); defaults to bundled sample data")
     train_p.add_argument("--sample-size", type=int, default=None, help="Randomly subsample this many rows before training (recommended for large datasets)")
+    train_p.add_argument("--save-charts", action="store_true", help="Save confusion matrix images to charts/ instead of just printing text tables")
 
     predict_p = sub.add_parser("predict", help="Predict sentiment for a single sentence")
     predict_p.add_argument("text", help="The sentence to classify")
@@ -31,21 +32,42 @@ def build_parser() -> argparse.ArgumentParser:
     eval_roberta_p.add_argument("--sample-size", type=int, default=None, help="Subsample this many rows before the train/test split (should match what you used for `train`)")
     eval_roberta_p.add_argument("--eval-limit", type=int, default=300, help="Max number of test examples to run through RoBERTa (CPU inference is slow, so this is capped by default)")
 
+    mismatch_p = sub.add_parser(
+        "analyze-mismatches",
+        help="Find reviews where the text's word choice disagrees with the star-rating-derived sentiment label"
+    )
+    mismatch_p.add_argument("--data", default=None, help="Path to a reviews file (.csv or .json-lines); defaults to bundled sample data")
+    mismatch_p.add_argument("--sample-size", type=int, default=None, help="Randomly subsample this many rows before analysis")
+    mismatch_p.add_argument("--threshold", type=int, default=2, help="Minimum lexicon score difference to count as a mismatch (default: 2)")
+
     return parser
 
 
 def cmd_train(args: argparse.Namespace) -> int:
-    from sentiment.evaluate import print_comparison_table, print_confusion_matrix, print_misclassified
+    from sentiment.evaluate import (
+        print_comparison_table,
+        print_confusion_matrix,
+        print_misclassified,
+        save_confusion_matrix_image,
+    )
     from sentiment.pipeline import run_training
 
     results = run_training(csv_path=args.data, sample_size=args.sample_size)
     print("\nModel comparison:\n")
     print_comparison_table(results)
 
+    if args.save_charts:
+        from pathlib import Path
+        charts_dir = Path("charts")
+        charts_dir.mkdir(exist_ok=True)
+
     for result in results:
         if result.model_name != "baseline":
             print_confusion_matrix(result)
             print_misclassified(result)
+            if args.save_charts:
+                path = save_confusion_matrix_image(result, str(charts_dir / f"confusion_{result.model_name}.png"))
+                print(f"Saved chart: {path}")
 
     return 0
 
@@ -93,6 +115,16 @@ def cmd_evaluate_roberta(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_analyze_mismatches(args: argparse.Namespace) -> int:
+    from sentiment.analysis import find_rating_text_mismatches, print_mismatch_report
+    from sentiment.data import load_reviews
+
+    df = load_reviews(args.data, sample_size=args.sample_size)
+    report = find_rating_text_mismatches(df, min_word_diff=args.threshold)
+    print_mismatch_report(report)
+    return 0
+
+
 def main(argv: list | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -103,6 +135,8 @@ def main(argv: list | None = None) -> int:
         return cmd_predict(args)
     if args.command == "evaluate-roberta":
         return cmd_evaluate_roberta(args)
+    if args.command == "analyze-mismatches":
+        return cmd_analyze_mismatches(args)
 
     parser.print_help()
     return 1

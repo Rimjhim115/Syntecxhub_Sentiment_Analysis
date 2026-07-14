@@ -64,3 +64,34 @@ def print_misclassified(result: EvalResult) -> None:
     print(f"\nSample misclassifications — {result.model_name}")
     for ex in result.misclassified:
         print(f"  actual={ex['true']:<9} predicted={ex['predicted']:<9} text=\"{ex['text'][:80]}\"")
+
+def save_confusion_matrix_image(result: EvalResult, output_path: str = "confusion_matrix.png") -> str:
+    
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    matrix = np.array(result.confusion)
+
+    fig, ax = plt.subplots(figsize=(5, 4.5))
+    im = ax.imshow(matrix, cmap="Blues")
+
+    ax.set_xticks(range(len(LABELS)))
+    ax.set_yticks(range(len(LABELS)))
+    ax.set_xticklabels(LABELS)
+    ax.set_yticklabels(LABELS)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    ax.set_title(f"Confusion Matrix — {result.model_name}")
+
+    max_val = matrix.max() if matrix.size else 0
+    for i in range(len(LABELS)):
+        for j in range(len(LABELS)):
+            value = matrix[i, j]
+            color = "white" if value > max_val / 2 else "black"
+            ax.text(j, i, str(value), ha="center", va="center", color=color)
+
+    fig.colorbar(im, ax=ax, label="Count")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+    return output_path
