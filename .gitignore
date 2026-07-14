@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+artifacts/
+*.egg-info/
+.DS_Store
+error.log
+data/*.json
+!data/sample_reviews.csv
