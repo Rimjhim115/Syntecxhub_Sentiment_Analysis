@@ -1,4 +1,6 @@
-[![CI](https://github.com/Rimjhim115/Syntexhub_Sentiment_Analysis/actions/workflows/ci.yml/badge.svg
+![CI](https://github.com/Rimjhim115/Syntecxhub_Sentiment_Analysis/actions/workflows/ci.yml/badge.svg)
+
+
 An end-to-end NLP sentiment analysis platform built during my AI Internship to classify Amazon product reviews into Negative, Neutral, and Positive sentiments using classical Machine Learning techniques.
 # Features:
 Trained on "Amazon Cell Phones & Accessories reviews
